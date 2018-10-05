@@ -42,7 +42,61 @@ var vx = 0;
 var vy = 0;
 
 var player = new Player(WIDTH/2, HEIGHT/2);
-var ship;
+var ship; // image of ship
+
+/** @function handleKeydown
+  * Event handler for keydown events
+  * @param {KeyEvent} event - the keydown event
+  */
+function handleKeydown(event) {
+  switch(event.key) {
+    case ' ':
+    console.log('fire?', currentInput, priorInput)
+      currentInput.space = true;
+      break;
+    case 'ArrowLeft':
+      currentInput.left = true;
+      break;
+    case 'ArrowRight':
+      currentInput.right = true;
+      break;
+	case 'ArrowUp':
+	  currentInput.up = true;
+	  break;
+	case 'ArrowDown':
+	  currentInput.down = true;
+	  break;
+  }
+}
+// Attach keyup event handler to the window
+window.addEventListener('keydown', handleKeydown);
+
+/** @function handleKeyup
+  * Event handler for keyup events
+  * @param {KeyEvent} event - the keyup event
+  */
+function handleKeyup(event) {
+  switch(event.key) {
+    case ' ':
+    console.log('no fire?', currentInput, priorInput)
+      currentInput.space = false;
+      break;
+    case 'ArrowLeft':
+      currentInput.left = false;
+      break;
+    case 'ArrowRight':
+      currentInput.right = false;
+      break;
+	case 'ArrowUp':
+	  currentInput.up = false;
+	  break;
+	case 'ArrowDown':
+	  currentInput.down = false;
+	  break;
+  }
+}
+// Attach keyup event handler to the window
+window.addEventListener('keyup', handleKeyup);
 
 function wrap(obj) {
 	if (obj.x >= WIDTH) {
@@ -61,7 +115,6 @@ function render(elapsedTime) {
 	ctx.clearRect(0, 0, WIDTH, HEIGHT);
 	ctx.fillStyle = "#000000";
 	ctx.fillRect(0,0,WIDTH,HEIGHT);
-	
 	player.load('img/ship.jpg');
 	player.render(ctx);
 }
@@ -88,6 +141,9 @@ function loop(timestamp) {
 	window.requestAnimationFrame(loop);
 }
 
+// Start the game loop
+window.requestAnimationFrame(loop);
+
 // Player class
 function Player(x, y) {
 	this.x = x;
@@ -112,10 +168,17 @@ function copyInput() {
   priorInput = JSON.parse(JSON.stringify(currentInput));
 }
 
-// Start the game loop
-window.requestAnimationFrame(loop);
-
 function Asteroid(x, y, v, mass) {
 	this.x = x;
 	this.y = y;
+}
+
+function Bullet(x, y, r) {
+	this.x = x;
+	this.y = y;
+	this.r = r;
+}
+
+Bullet.prototype.update = function(deltaT) {
+	
 }

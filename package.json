@@ -10,7 +10,7 @@
   "author": "Carson Holt",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/carsonholt/asteroids"
   },
   "directories": {
     "dist": "./dist",
