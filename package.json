@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "name": "asteroids",
+  "description": "asteroids game",
+  "keywords": [],
+  "preferGlobal": true,
+  "config": {
+    "publishtest": false
+  },
+  "author": "Carson Holt",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "directories": {
+    "dist": "./dist",
+    "img": "./img",
+    "src": "./src"
+  },
+  "dependencies": {
+  
+  },
+  "devDependencies": {
+  
+  },
+  "scripts": {
+
+  }
+}
