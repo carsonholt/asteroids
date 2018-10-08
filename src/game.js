@@ -35,14 +35,20 @@ var lives = 3;
 var score = 0;
 var level = 1;
 
-// Velocities for each direction
+// Velocities and positions for each direction
 var x;
 var y;
 var vx = 0;
 var vy = 0;
 
+// images
 var player = new Player(WIDTH/2, HEIGHT/2);
 var ship; // image of ship
+var asteroidImg;
+
+// arrays
+var lasers = [];
+var asteroids = [];
 
 /** @function handleKeydown
   * Event handler for keydown events
@@ -97,7 +103,10 @@ function handleKeyup(event) {
 }
 // Attach keyup event handler to the window
 window.addEventListener('keyup', handleKeyup);
-
+ 
+/** @function wrap
+  * takes an object and wraps to other side of screen if necessary
+  */
 function wrap(obj) {
 	if (obj.x >= WIDTH) {
 		obj.x -= WIDTH;
@@ -111,6 +120,21 @@ function wrap(obj) {
 	}
 }
 
+/** @function detectCollision
+  * takes two objects and checks for overlap
+  * @param a and b - two objects
+  */
+function detectCollision(a, b) {
+	if ((a.x >= b.x && a.x < b.x + b.width) && (a.y >= b.y && a.y < b.y + b.height)) {
+		console.log('collision detected');
+		console.log(a.constructor.name);
+		console.log(b.constructor.name);
+		return true;
+	} else {
+		return false;
+	}
+}
+
 function render(elapsedTime) {
 	ctx.clearRect(0, 0, WIDTH, HEIGHT);
 	ctx.fillStyle = "#000000";
@@ -119,11 +143,28 @@ function render(elapsedTime) {
 	player.render(ctx);
 }
 
+/**
+ *
+ */
 function update(elapsedTime) {
 	if (currentInput.space && !priorInput.space) {
-		// fire bullet
-		//bullets.push(new Bullet(1, player.x+20, player.y, 2));
+		// fire laser
+		lasers.push(new Laser(player.x+20, player.y, 10));
 	}
+	if (currentInput.up) {
+		
+	}
+	if (currentInput.down) {
+		
+	}
+	if (currentInput.left) {
+		
+	}
+	if (currentInput.right) {
+		
+	}
+	
+	wrap(); // wrap to other side of screen
 }
 
 function loop(timestamp) {
@@ -173,12 +214,36 @@ function Asteroid(x, y, v, mass) {
 	this.y = y;
 }
 
-function Bullet(x, y, r) {
-	this.x = x;
-	this.y = y;
-	this.r = r;
+Asteroid.prototype.load = function(context) {
+	asteroidImg = new Image();
+	ship.src = "img/asteroid.jpg";
 }
 
-Bullet.prototype.update = function(deltaT) {
+Asteroid.prototype.render = function(context) {
+	context.drawImage(asteroidImg, this.x, this.y, mass, mass);
+}
+
+Asteroid.prototype.split = function(context) {
+	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2));
+	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2));
+}
+
+// Laser class
+function Laser(x, y, l) {
+	this.x = x;
+	this.y = y;
+	this.l = l;
+}
+
+Laser.prototype.update = function(deltaT) {
 	
+}
+
+Laser.prototype.render = function(deltaT) {
+	context.beginPath();
+	context.fillStyle = "#FFFFFF";
+	context.beginPath();
+	context.moveTo(x, y);
+	context.lineTo(x+l, y+l);
+	context.stroke();
 }
