@@ -38,9 +38,9 @@ var level = 1;
 // Velocities and positions for each direction
 var x;
 var y;
-var vx = 0;
-var vy = 0;
-
+var dir = {x: 0, y:0} // direction vector
+var vel = {x: 0, y:0} // velocity vector
+var ang = {x:0, y:0} // angle vector
 // images
 var player = new Player(WIDTH/2, HEIGHT/2);
 var ship; // image of ship
@@ -55,18 +55,20 @@ var asteroids = [];
   * @param {KeyEvent} event - the keydown event
   */
 function handleKeydown(event) {
+	console.log("WTF: ");
   switch(event.key) {
     case ' ':
-    console.log('fire?', currentInput, priorInput)
+	  console.log('fire?', currentInput, priorInput);
       currentInput.space = true;
       break;
-    case 'ArrowLeft':
+    case 37:
       currentInput.left = true;
       break;
-    case 'ArrowRight':
+    case 39:
       currentInput.right = true;
       break;
 	case 'ArrowUp':
+	  console.log('up?', currentInput, priorInput);
 	  currentInput.up = true;
 	  break;
 	case 'ArrowDown':
@@ -110,12 +112,12 @@ window.addEventListener('keyup', handleKeyup);
 function wrap(obj) {
 	if (obj.x >= WIDTH) {
 		obj.x -= WIDTH;
-	} else if (x < 0) {
+	} else if (obj.x < 0) {
 		obj.x += WIDTH;
 	}
 	if (obj.y >= HEIGHT) {
 		obj.y -= HEIGHT;
-	} else if (y < 0) {
+	} else if (obj.y < 0) {
 		obj.y += HEIGHT;
 	}
 }
@@ -152,18 +154,24 @@ function update(elapsedTime) {
 		lasers.push(new Laser(player.x+20, player.y, 10));
 	}
 	if (currentInput.up) {
-		
+		console.log(player.y);
+		dir = {x: 0, y:-1}
+		player.y += dir * elapsedTime;
+		console.log(player.y);
 	}
 	if (currentInput.down) {
-		
+		dir = {x: 0, y:1}
+		player.y += dir * elapsedTime;
+		console.log(player.y);
 	}
 	if (currentInput.left) {
-		
+		//console.log(player.y);
 	}
 	if (currentInput.right) {
 		
 	}
 	
+	player.update();
 	wrap(player); // wrap to other side of screen
 }
 
@@ -198,6 +206,10 @@ Player.prototype.load = function(pathname) {
 	//player.height = 30;
 }
 
+Player.prototype.update = function(deltaT) {
+	this.y += dir * deltaT;
+}
+
 Player.prototype.render = function(context) {
 	context.drawImage(ship, this.x, this.y);
 }
@@ -209,9 +221,11 @@ function copyInput() {
   priorInput = JSON.parse(JSON.stringify(currentInput));
 }
 
-function Asteroid(x, y, v, mass) {
+function Asteroid(x, y, v, m) {
 	this.x = x;
 	this.y = y;
+	this.v = v;
+	this.m = m;
 }
 
 Asteroid.prototype.load = function(context) {
@@ -236,7 +250,7 @@ function Laser(x, y, l) {
 }
 
 Laser.prototype.update = function(deltaT) {
-	
+	this.y += 0.2 * dir;
 }
 
 Laser.prototype.render = function(deltaT) {
@@ -247,7 +261,6 @@ Laser.prototype.render = function(deltaT) {
 	context.lineTo(x+l, y+l);
 	context.stroke();
 }
-
 // Vector class
 
 function add(a, b) {

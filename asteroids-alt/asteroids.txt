@@ -61,10 +61,10 @@ function handleKeydown(event) {
 	  console.log('fire?', currentInput, priorInput);
       currentInput.space = true;
       break;
-    case 'ArrowLeft':
+    case 37:
       currentInput.left = true;
       break;
-    case 'ArrowRight':
+    case 39:
       currentInput.right = true;
       break;
 	case 'ArrowUp':
@@ -86,7 +86,7 @@ window.addEventListener('keydown', handleKeydown);
 function handleKeyup(event) {
   switch(event.key) {
     case ' ':
-    console.log('no fire?', currentInput, priorInput);
+    console.log('no fire?', currentInput, priorInput)
       currentInput.space = false;
       break;
     case 'ArrowLeft':
