@@ -38,10 +38,10 @@ var level = 0;
 var numAst = 5; // number of asteroids to start level
 
 // Velocities and positions for each direction
-var x;
-var y;
-var dir = {x: 0, y:0} // direction vector
-var vel = {x: 0, y:0} // velocity vector
+var x = 0;
+var y = 0;
+var dir = {x: 0, y:0}; // direction vector
+var vel = {x: 0, y:0}; // velocity vector
 //var ang = {x:0, y:0} // angle vector
 // images
 var player = new Player(WIDTH/2, HEIGHT/2);
@@ -88,7 +88,6 @@ window.addEventListener('keydown', handleKeydown);
   */
 function handleKeyup(event) {
   switch(event.key) {
-	  alert(event.key);
     case ' ':
     console.log('no fire?', currentInput, priorInput);
       currentInput.space = false;
@@ -110,6 +109,7 @@ function handleKeyup(event) {
   }
 }
 // Attach keyup event handler to the window
+console.log("Add listener");
 window.addEventListener('keyup', handleKeyup);
  
 /** @function wrap
@@ -195,6 +195,8 @@ function update(elapsedTime) {
 		asteroid.update(elapsedTime);
 		if (detectCollision(asteroid, player)) {
 			life--;
+			player.x = WIDTH/2;
+			player.y = HEIGHT/2;
 			return;
 		}
 		if ((asteroid.x < 1 || asteroid.x > WIDTH) || (asteroid.y < 1 || asteroid.y > HEIGHT)) {
@@ -210,7 +212,7 @@ function update(elapsedTime) {
 		asteroids.forEach(function(asteroid) {
 			if (detectCollision(laser, asteroid)) {
 				asteroid.split();
-				delete asteroid;
+				delete asteroid.x;
 			}
 		});
 	});
@@ -238,8 +240,8 @@ function loop(timestamp) {
 }
 
 // Start the game loop
-console.log("START THE GAME!");
-requestAnimationFrame(loop);
+//console.log("START THE GAME!");
+window.requestAnimationFrame(loop);
 
 // Player class
 function Player(x, y) {
