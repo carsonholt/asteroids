@@ -1,6 +1,7 @@
 {
   "version": "1.0.0",
   "name": "asteroids",
+  "main": "index.js",
   "description": "asteroids game",
   "keywords": [],
   "preferGlobal": true,
@@ -17,13 +18,15 @@
     "img": "./img",
     "src": "./src"
   },
-  "dependencies": {
-  
-  },
+  "dependencies": {},
   "devDependencies": {
-  
+    "webpack": "^4.19.1",
+    "webpack-cli": "^3.1.0",
+    "webpack-dev-server": "^3.1.8"
   },
   "scripts": {
-
+    "build": "webpack --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./node_modules/.bin/webpack-dev-server"
   }
 }

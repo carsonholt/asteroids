@@ -10,5 +10,5 @@ module.exports = {
     contentBase: path.resolve(__dirname, "./dist"),
     watchContentBase: true
   },
-  watch:true
+  //watch:true
 };

@@ -110,12 +110,12 @@ window.addEventListener('keyup', handleKeyup);
 function wrap(obj) {
 	if (obj.x >= WIDTH) {
 		obj.x -= WIDTH;
-	} else if (x < 0) {
+	} else if (obj.x < 0) {
 		obj.x += WIDTH;
 	}
 	if (obj.y >= HEIGHT) {
 		obj.y -= HEIGHT;
-	} else if (y < 0) {
+	} else if (obj.y < 0) {
 		obj.y += HEIGHT;
 	}
 }
@@ -164,7 +164,7 @@ function update(elapsedTime) {
 		
 	}
 	
-	wrap(); // wrap to other side of screen
+	wrap(player); // wrap to other side of screen
 }
 
 function loop(timestamp) {
@@ -209,9 +209,11 @@ function copyInput() {
   priorInput = JSON.parse(JSON.stringify(currentInput));
 }
 
-function Asteroid(x, y, v, mass) {
+function Asteroid(x, y, v, m) {
 	this.x = x;
 	this.y = y;
+	this.v = v;
+	this.m = m;
 }
 
 Asteroid.prototype.load = function(context) {
@@ -224,8 +226,8 @@ Asteroid.prototype.render = function(context) {
 }
 
 Asteroid.prototype.split = function(context) {
-	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2));
-	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2));
+	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2)));
+	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2)));
 }
 
 // Laser class
