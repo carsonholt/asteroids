@@ -36,3 +36,21 @@ export function perpendicular(a) {
     y: a.x
   }
 }
+
+export function rotate(a, angle) {
+	return {
+		x: a.x * Math.cos(angle) -a.y * Math.sin(angle),
+		y: a.y * Math.sin(angle) + a.y * Math.cos(angle)
+	}
+}
+
+export function invert(a) {
+	return {x:-a.x, y:-a.y}
+}
+
+export function scalar(a, s) {
+	return {
+		x: a.x * s,
+		y: a.y * s
+	}
+}

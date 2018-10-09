@@ -44,8 +44,8 @@ var y = HEIGHT/2;
 
 var dir = {x: 0, y:0}; // direction vector
 var vel = {x: 0, y:0}; // velocity vector
-var speed = 0.001;
-
+var speed = 0.01;
+const MAX_SPEED = 2;
 // images
 var player = new Player(WIDTH/2, HEIGHT/2);
 player.x = x;
@@ -97,16 +97,16 @@ function handleKeyup(event) {
     console.log('no fire?', currentInput, priorInput);
       currentInput.space = false;
       break;
-    case 37:
+    case 'ArrowLeft':
       currentInput.left = false;
       break;
-    case 39:
+    case 'ArrowRight':
       currentInput.right = false;
       break;
-	case 38:
+	case 'ArrowUp':
 	  currentInput.up = false;
 	  break;
-	case 40:
+	case 'ArrowDown':
 	  currentInput.down = false;
 	  break;
   }
@@ -119,10 +119,16 @@ window.addEventListener('keyup', handleKeyup);
   * takes an object and wraps to other side of screen if necessary
   */
 function wrap(obj) {
-	if (obj.x < 0 || obj.x >= WIDTH) {
+	if (obj.x >= WIDTH) {		
 		obj.x %= WIDTH;
+	} else if (obj.x < 0) {
+		obj.x += WIDTH;
 	}
-	obj.y %= HEIGHT;
+	if (obj.y >= HEIGHT) {
+		obj.y %= HEIGHT;
+	} else if (obj.y < 0){
+		obj.y += HEIGHT;
+	}
 }
 
 /** @function detectCollision
@@ -175,39 +181,16 @@ function render(elapsedTime) {
  *
  */
 function update(elapsedTime) {
-	if (currentInput.space && !priorInput.space) {
-		// fire laser
-		lasers.push(new Laser(x+15, y, 10));
-		console.log("laser fired");
-	}
-	if (currentInput.up) {
-		//console.log(player.y);
-		vel = Vector.add(vel, {x: 0, y:-1});
-		y += vel.y * elapsedTime * speed;
-		console.log("y: " + y);
-	}
-	if (currentInput.down) {
-		vel = Vector.add(vel, {x: 0, y:1});
-		y += vel.y * elapsedTime * speed;
-		console.log("y: " + y);
-	}
-	if (currentInput.left) {
-		//player.rotate(ctx);
-		console.log(x);
-	}
-	if (currentInput.right) {
-		//player.rotate(ctx);
-		console.log(x);		
-	}
 	
+	Vector.normalize(vel);
 	asteroids.forEach(function(asteroid) {
 		asteroid.update(elapsedTime);
-		if (detectCollision(asteroid, player)) {
+		/*if (detectCollision(asteroid, player)) {
 			lives--;
 			player.x = WIDTH/2;
 			player.y = HEIGHT/2;
 			return;
-		}
+		}*/
 		if ((asteroid.x < 10 || asteroid.x > WIDTH) || (asteroid.y < 1 || asteroid.y > HEIGHT)) {
 			wrap(asteroid);
 		}
@@ -225,8 +208,8 @@ function update(elapsedTime) {
 			}
 		});
 	});
-	player.update(elapsedTime);
-	wrap(player); // wrap to other side of screen
+	player.update(elapsedTime, currentInput, priorInput);
+	//wrap(player); // wrap to other side of screen
 }
 
 function loop(timestamp) {
@@ -270,20 +253,53 @@ class Player {
 		//ship = this.ship;
 		this.width = 30;
 		this.height = 40;
+		this.velocity = {x:0, y:0};
 		console.log("Player: (" + this.x + ", " + this.y + ")");
 	}
 
-	update(deltaT) {
-		this.x += vel.x * deltaT;
-		this.y += vel.y * deltaT;
+	update(deltaT, currentInput, priorInput) {
+		var facing = Vector.rotate({x:0, y:-1}, this.angle);
+		if (currentInput.space && !priorInput.space) {
+			// fire laser
+			lasers.push(new Laser(x+15, y, 10));
+			console.log("laser fired");
+		}
+		if (currentInput.up) {
+			this.velocity = Vector.add(this.velocity, facing);
+			//this.velocity += .02;
+			if (Vector.magnitude(this.velocity) > MAX_SPEED) {
+				this.velocity = Vector.scalar(Vector.normalize(this.velocity), MAX_SPEED);
+			}
+			//console.log("y: " + y);
+		}
+		if (currentInput.down) {
+			this.velocity = Vector.add(this.velocity, Vector.invert(facing));
+			//this.velocity -= .02;
+			if (Vector.magnitude(this.velocity) > MAX_SPEED) {
+				this.velocity = Vector.scalar(Vector.normalize(this.velocity), MAX_SPEED);
+			}
+			//console.log("y: " + y);
+		}
+		if (currentInput.left) {
+			this.angle -= 1;
+			//console.log(x);
+		}
+		if (currentInput.right) {
+			this.angle += 1;
+			//console.log(x);		
+		}
+		var temp = Vector.add(this, this.velocity);
+		this.x = temp.x;
+		this.y = temp.y;
+		wrap(this);
 	}
 
 	render(context) {
 		//console.log("(x, y): " + this.x + ", " + this.y);
-		context.save();
-		context.rotate(this.angle * Math.PI / 180);
+		context.save();		
 		context.translate(this.x, this.y);
-		context.drawImage(this.ship, this.x, this.y);
+		context.rotate(this.angle * Math.PI / 180);
+		context.drawImage(this.ship, - 15, - 20);
 		//console.log("Draw image: " + this.ship.src + " at " + this.x + ", " + this.y);
 		context.restore();
 	}
