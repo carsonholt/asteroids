@@ -1,5 +1,6 @@
 // Asteroids, by Carson Holt
 import * as Vector from './vector';
+//import Player from './player';
 
 // screen dimensions
 const WIDTH = 720
@@ -38,13 +39,18 @@ var level = 0;
 var numAst = 5; // number of asteroids to start level
 
 // Velocities and positions for each direction
-var x = 0;
-var y = 0;
+var x = WIDTH/2;
+var y = HEIGHT/2;
+
 var dir = {x: 0, y:0}; // direction vector
 var vel = {x: 0, y:0}; // velocity vector
-//var ang = {x:0, y:0} // angle vector
+var speed = 0.001;
+
 // images
 var player = new Player(WIDTH/2, HEIGHT/2);
+player.x = x;
+player.y = y;
+//player.load('img/ship.jpg');
 var ship; // image of ship
 var asteroidImg;
 
@@ -59,18 +65,17 @@ var asteroids = [];
 function handleKeydown(event) {
   switch(event.key) {
     case ' ':
-	  console.log('fire?', currentInput, priorInput);
+	  //console.log('fire?', currentInput, priorInput);
       currentInput.space = true;
       break;
 	case 'ArrowLeft':
-	  console.log('left');
       currentInput.left = true;
       break;
 	case 'ArrowRight':
       currentInput.right = true;
       break;
 	case 'ArrowUp':
-	  console.log('up?', currentInput, priorInput);
+	  //console.log('up?', currentInput, priorInput);
 	  currentInput.up = true;
 	  break;
 	case 'ArrowDown':
@@ -92,11 +97,9 @@ function handleKeyup(event) {
     console.log('no fire?', currentInput, priorInput);
       currentInput.space = false;
       break;
-	case 65:
     case 37:
       currentInput.left = false;
       break;
-	case 68:
     case 39:
       currentInput.right = false;
       break;
@@ -116,7 +119,9 @@ window.addEventListener('keyup', handleKeyup);
   * takes an object and wraps to other side of screen if necessary
   */
 function wrap(obj) {
-	obj.x %= WIDTH;
+	if (obj.x < 0 || obj.x >= WIDTH) {
+		obj.x %= WIDTH;
+	}
 	obj.y %= HEIGHT;
 }
 
@@ -139,14 +144,15 @@ function detectCollision(a, b) {
 function startLevel() {
 	level++;
 	while (asteroids.length < numAst) {
+		console.log("asteroid length: " + asteroids.length);
 		var randX = Math.random() * WIDTH;
 		var randY = Math.random() * HEIGHT;
-		if ((randX < WIDTH/2 - 50 && randX > WIDTH/2 + 50) && (randY < HEIGHT/2 - 50 && randY > HEIGHT/2 + 50)) {
+		if ((randX < (WIDTH/2 - 50) || randX > (WIDTH/2 + 50)) || (randY < HEIGHT/2 - 50 || randY > HEIGHT/2 + 50)) {
 			var randVx = Math.random() * 10 - 5;
 			var randVy = Math.random() * 10 - 5;
 			var randM = Math.random() * 40 + 20;
 			asteroids.push(randX, randY, {x:randVx, y:randVy}, randM);
-			//asteroids.render(ctx);
+			console.log("New asteroid at: (" + randX + ", " + randY + ") with speed (" + randVx + ", " + randVy + ") and mass " + randM);
 		}
 	}
 }
@@ -155,10 +161,11 @@ function render(elapsedTime) {
 	ctx.clearRect(0, 0, WIDTH, HEIGHT);
 	ctx.fillStyle = "#000000";
 	ctx.fillRect(0,0,WIDTH,HEIGHT);
-	player.load('img/ship.jpg');
 	player.render(ctx);
+	//player.rotate(ctx);
 	asteroids.forEach(function(asteroid) {
-		asteroid.render(ctx);
+		//console.log("Asteroid: " + asteroid);
+		//asteroid.render(ctx);
 	});
 }
 
@@ -168,38 +175,38 @@ function render(elapsedTime) {
 function update(elapsedTime) {
 	if (currentInput.space && !priorInput.space) {
 		// fire laser
-		lasers.push(new Laser(player.x+15, player.y, 10));
+		lasers.push(new Laser(x+15, y, 10));
 		console.log("laser fired");
 	}
 	if (currentInput.up) {
-		console.log(player.y);
-		dir = {x: 0, y:-1}
-		player.y += dir * elapsedTime;
-		console.log(player.y);
+		//console.log(player.y);
+		vel = Vector.add(vel, {x: 0, y:-1});
+		y += vel.y * elapsedTime * speed;
+		console.log("y: " + y);
 	}
 	if (currentInput.down) {
-		dir = {x: 0, y:1}
-		player.y += dir * elapsedTime;
-		console.log(player.y);
+		vel = Vector.add(vel, {x: 0, y:1});
+		y += vel.y * elapsedTime * speed;
+		console.log("y: " + y);
 	}
 	if (currentInput.left) {
-		player.rotate(ctx);
-		console.log(player.x);
+		//player.rotate(ctx);
+		console.log(x);
 	}
 	if (currentInput.right) {
-		player.rotate(ctx);
-		console.log(player.x);		
+		//player.rotate(ctx);
+		console.log(x);		
 	}
 	
 	asteroids.forEach(function(asteroid) {
-		asteroid.update(elapsedTime);
+		//asteroid.update(elapsedTime);
 		if (detectCollision(asteroid, player)) {
 			life--;
 			player.x = WIDTH/2;
 			player.y = HEIGHT/2;
 			return;
 		}
-		if ((asteroid.x < 1 || asteroid.x > WIDTH) || (asteroid.y < 1 || asteroid.y > HEIGHT)) {
+		if ((asteroid.x < 10 || asteroid.x > WIDTH) || (asteroid.y < 1 || asteroid.y > HEIGHT)) {
 			wrap(asteroid);
 		}
 	});
@@ -224,7 +231,7 @@ function loop(timestamp) {
 	if(!start) start = timestamp;
 	var elapsedTime = timestamp - start;
 	start = timestamp;
-	console.log("loop");
+	//console.log("loop");
 	if (asteroids.length == 0) {
 		startLevel();
 	}
@@ -243,33 +250,6 @@ function loop(timestamp) {
 //console.log("START THE GAME!");
 window.requestAnimationFrame(loop);
 
-// Player class
-function Player(x, y) {
-	this.x = x;
-	this.y = y;
-}
-
-Player.prototype.load = function(pathname) {
-	ship = new Image();
-	ship.src = "img/ship.jpg"
-	//player.width = 40;
-	//player.height = 30;
-}
-
-Player.prototype.update = function(deltaT) {
-	this.y += dir * deltaT;
-}
-
-Player.prototype.render = function(context) {
-	context.drawImage(ship, this.x, this.y);
-}
-
-Player.prototype.rotate = function(context) {
-	context.translate(x + this.width / 2, y + this.height / 2);
-	context.rotate(this.angle * Math.PI / 180);
-	ctx.drawImage(this.img, this.x, this.y, this.width, this.height,
-                        -this.width / 2, -this.height / 2, this.width, this.height);
-}
 /** @function copyInput
   * Copies the current input into the previous input
   */
@@ -277,25 +257,57 @@ function copyInput() {
   priorInput = JSON.parse(JSON.stringify(currentInput));
 }
 
+// Player class
+class Player {
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+		this.angle = 0;
+		this.ship = new Image();
+		this.ship.src = "img/ship.jpg";
+		this.width = 30;
+		this.height = 40;
+		console.log("Player: (" + this.x + ", " + this.y + ")");
+	}
+
+	update(deltaT) {
+		this.x += vel.x * deltaT;
+		this.y += vel.y * deltaT;
+	}
+
+	render(context) {
+		console.log("(x, y): " + x + ", " + y);
+		context.save();
+		context.rotate(this.angle * Math.PI / 180);
+		context.translate(this.x, this.y);
+		context.drawImage(this.ship, this.x, this.y);
+		context.restore();
+	}
+
+	/*rotate(context) {
+		context.translate(x + this.width / 2, y + this.height / 2);
+		context.rotate(this.angle * Math.PI / 180);
+		context.drawImage(this.ship, this.x, this.y, this.width, this.height,
+                        -this.width / 2, -this.height / 2, this.width, this.height);
+	}*/
+}
+
 function Asteroid(x, y, v, m) {
 	this.x = x;
 	this.y = y;
 	this.v = v;
 	this.m = m;
-}
-
-Asteroid.prototype.load = function(context) {
-	asteroidImg = new Image();
-	ship.src = "img/asteroid.jpg";
+	this.asteroidImg = new Image();
+	this.asteroidImg.src = "img/asteroid.jpg";
 }
 
 Asteroid.prototype.render = function(context) {
-	context.drawImage(asteroidImg, this.x, this.y, mass, mass);
+	context.drawImage(asteroidImg, x, y, Math.round(m), Math.round(m));
 }
 
 Asteroid.prototype.split = function() {
-	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2)));
-	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2)));
+	asteroids.push(new Asteroid(x, y, v, m/Math.sqrt(2)));
+	asteroids.push(new Asteroid(x, y, v, m/Math.sqrt(2)));
 }
 
 // Laser class

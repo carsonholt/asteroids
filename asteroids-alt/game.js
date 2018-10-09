@@ -35,12 +35,14 @@ var lives = 3;
 var score = 0;
 var level = 1;
 
+var numAst = 5; // number of asteroids to start level
+
 // Velocities and positions for each direction
-var x;
-var y;
-var dir = {x: 0, y:0} // direction vector
-var vel = {x: 0, y:0} // velocity vector
-var ang = {x:0, y:0} // angle vector
+var x = 0;
+var y = 0;
+var dir = {x: 0, y:0}; // direction vector
+var vel = {x: 0, y:0}; // velocity vector
+//var ang = {x:0, y:0} // angle vector
 // images
 var player = new Player(WIDTH/2, HEIGHT/2);
 var ship; // image of ship
@@ -55,16 +57,16 @@ var asteroids = [];
   * @param {KeyEvent} event - the keydown event
   */
 function handleKeydown(event) {
-	console.log("WTF: ");
   switch(event.key) {
     case ' ':
 	  console.log('fire?', currentInput, priorInput);
       currentInput.space = true;
       break;
-    case 37:
+	case 'ArrowLeft':
+	  console.log('left');
       currentInput.left = true;
       break;
-    case 39:
+	case 'ArrowRight':
       currentInput.right = true;
       break;
 	case 'ArrowUp':
@@ -75,6 +77,7 @@ function handleKeydown(event) {
 	  currentInput.down = true;
 	  break;
   }
+  event.preventDefault();
 }
 // Attach keyup event handler to the window
 window.addEventListener('keydown', handleKeydown);
@@ -86,40 +89,35 @@ window.addEventListener('keydown', handleKeydown);
 function handleKeyup(event) {
   switch(event.key) {
     case ' ':
-    console.log('no fire?', currentInput, priorInput)
+    console.log('no fire?', currentInput, priorInput);
       currentInput.space = false;
       break;
-    case 'ArrowLeft':
+	case 65:
+    case 37:
       currentInput.left = false;
       break;
-    case 'ArrowRight':
+	case 68:
+    case 39:
       currentInput.right = false;
       break;
-	case 'ArrowUp':
+	case 38:
 	  currentInput.up = false;
 	  break;
-	case 'ArrowDown':
+	case 40:
 	  currentInput.down = false;
 	  break;
   }
 }
 // Attach keyup event handler to the window
+console.log("Add listener");
 window.addEventListener('keyup', handleKeyup);
  
 /** @function wrap
   * takes an object and wraps to other side of screen if necessary
   */
 function wrap(obj) {
-	if (obj.x >= WIDTH) {
-		obj.x -= WIDTH;
-	} else if (obj.x < 0) {
-		obj.x += WIDTH;
-	}
-	if (obj.y >= HEIGHT) {
-		obj.y -= HEIGHT;
-	} else if (obj.y < 0) {
-		obj.y += HEIGHT;
-	}
+	obj.x %= WIDTH;
+	obj.y %= HEIGHT;
 }
 
 /** @function detectCollision
@@ -137,12 +135,31 @@ function detectCollision(a, b) {
 	}
 }
 
+// render a number of asteroids
+function startLevel() {
+	level++;
+	while (asteroids.length < numAst) {
+		var randX = Math.random() * WIDTH;
+		var randY = Math.random() * HEIGHT;
+		if ((randX < WIDTH/2 - 50 && randX > WIDTH/2 + 50) && (randY < HEIGHT/2 - 50 && randY > HEIGHT/2 + 50)) {
+			var randVx = Math.random() * 10 - 5;
+			var randVy = Math.random() * 10 - 5;
+			var randM = Math.random() * 40 + 20;
+			asteroids.push(randX, randY, {x:randVx, y:randVy}, randM);
+			//asteroids.render(ctx);
+		}
+	}
+}
+
 function render(elapsedTime) {
 	ctx.clearRect(0, 0, WIDTH, HEIGHT);
 	ctx.fillStyle = "#000000";
 	ctx.fillRect(0,0,WIDTH,HEIGHT);
 	player.load('img/ship.jpg');
 	player.render(ctx);
+	asteroids.forEach(function(asteroid) {
+		asteroid.render(ctx);
+	});
 }
 
 /**
@@ -151,7 +168,8 @@ function render(elapsedTime) {
 function update(elapsedTime) {
 	if (currentInput.space && !priorInput.space) {
 		// fire laser
-		lasers.push(new Laser(player.x+20, player.y, 10));
+		lasers.push(new Laser(player.x+15, player.y, 10));
+		console.log("laser fired");
 	}
 	if (currentInput.up) {
 		console.log(player.y);
@@ -165,12 +183,39 @@ function update(elapsedTime) {
 		console.log(player.y);
 	}
 	if (currentInput.left) {
-		//console.log(player.y);
+		player.rotate(ctx);
+		console.log(player.x);
 	}
 	if (currentInput.right) {
-		
+		player.rotate(ctx);
+		console.log(player.x);		
 	}
 	
+	asteroids.forEach(function(asteroid) {
+		asteroid.update(elapsedTime);
+		if (detectCollision(asteroid, player)) {
+			life--;
+			player.x = WIDTH/2;
+			player.y = HEIGHT/2;
+			return;
+		}
+		if ((asteroid.x < 1 || asteroid.x > WIDTH) || (asteroid.y < 1 || asteroid.y > HEIGHT)) {
+			wrap(asteroid);
+		}
+	});
+	
+	lasers.forEach(function(laser) {
+		laser.update(elapsedTime);
+		if ((laser.x < 0 || laser.x >= WIDTH) || (laser.y < 0 || laser.y >= HEIGHT)) {
+			lasers.splice(index,1);
+		}
+		asteroids.forEach(function(asteroid) {
+			if (detectCollision(laser, asteroid)) {
+				asteroid.split();
+				delete asteroid.x;
+			}
+		});
+	});
 	player.update();
 	wrap(player); // wrap to other side of screen
 }
@@ -179,6 +224,10 @@ function loop(timestamp) {
 	if(!start) start = timestamp;
 	var elapsedTime = timestamp - start;
 	start = timestamp;
+	console.log("loop");
+	if (asteroids.length == 0) {
+		startLevel();
+	}
 	update(elapsedTime);
 	render(elapsedTime);
 	if (lives < 1) 
@@ -191,6 +240,7 @@ function loop(timestamp) {
 }
 
 // Start the game loop
+//console.log("START THE GAME!");
 window.requestAnimationFrame(loop);
 
 // Player class
@@ -214,6 +264,12 @@ Player.prototype.render = function(context) {
 	context.drawImage(ship, this.x, this.y);
 }
 
+Player.prototype.rotate = function(context) {
+	context.translate(x + this.width / 2, y + this.height / 2);
+	context.rotate(this.angle * Math.PI / 180);
+	ctx.drawImage(this.img, this.x, this.y, this.width, this.height,
+                        -this.width / 2, -this.height / 2, this.width, this.height);
+}
 /** @function copyInput
   * Copies the current input into the previous input
   */
@@ -237,7 +293,7 @@ Asteroid.prototype.render = function(context) {
 	context.drawImage(asteroidImg, this.x, this.y, mass, mass);
 }
 
-Asteroid.prototype.split = function(context) {
+Asteroid.prototype.split = function() {
 	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2)));
 	asteroids.push(new Asteroid(x, y, v, mass/Math.sqrt(2)));
 }
@@ -250,6 +306,7 @@ function Laser(x, y, l) {
 }
 
 Laser.prototype.update = function(deltaT) {
+	this.x += 0.2 * dir;
 	this.y += 0.2 * dir;
 }
 
